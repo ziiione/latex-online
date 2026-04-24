@@ -1,0 +1,13 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Project Timeline Snapshot (Gantt Chart Representation)\relax }}{17}{}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Phases of the Agile Development Methodology\relax }}{18}{}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Sharded Training and Machine Unlearning Architecture\relax }}{19}{}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Main dashboard showing unlearning status and metrics\relax }}{21}{}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Configuration file setup with API key\relax }}{22}{}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Impact of shard count on unlearning latency in the SISA framework\relax }}{24}{}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Accuracy retention across different shard configurations\relax }}{25}{}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Speedup factor of SISA unlearning compared to full retraining across dataset sizes\relax }}{26}{}%

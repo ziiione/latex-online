@@ -1,0 +1,74 @@
+\chapter{LITERATURE REVIEW}
+
+Machine learning (ML) is a key technology across industries from personalized recommendations to healthcare diagnostics and fraud detection. These models rely on user data to improve predictions, raising privacy concerns. Regulations like GDPR and CCPA enforce a "right to be forgotten," allowing users to request deletion of their data from systems, including ML models. However, removing specific users' influence from a trained model is not straightforward. Most ML pipelines are designed for learning, not unlearning. Retraining an entire model from scratch for every deletion request is time-consuming, computationally expensive, and often impractical. This creates a technical gap for efficient user data forgetting.
+
+Research in machine unlearning proposes methods like dataset partitioning and influence estimation. The SISA (Sharded, Isolated, Sliced Aggregation) framework is notable for balancing performance with deletion support. Yet, many methods remain academic prototypes or are tailored to specific models. There is a lack of general-purpose, developer-friendly libraries for machine unlearning in real-world scenarios. To address this, we introduce a Python package to help developers train models supporting future unlearning requests, focusing on user-level data tracking and integrating deletion as a core feature. The system is modular and compatible with standard scikit-learn estimators, offering a practical tool for privacy-aware ML.
+
+In addition to algorithmic efficiency, recent practical deployments emphasize system-level requirements that are often under-addressed in the literature, such as persistence of model state across repeated executions, auditability of deletion actions, and operational monitoring. In particular, maintaining persistent metadata (e.g., index-to-shard mappings and active sample counts) and an unlearning history log supports verifiable and repeatable unlearning, while optional cloud-based monitoring can provide visibility into unlearning events and model statistics without altering the core ML workflow.
+
+Researchers have explored different approaches. One well-known method, SISA, breaks data into smaller chunks and trains multiple isolated models. When a user requests deletion, only affected parts are retrained, making unlearning more efficient. We implement the SISA training paradigm introduced by Bourtoule et al., which breaks the training process into smaller components enabling localized retraining. The training pipeline starts with an annotated user-centric dataset, where each record contains a user ID, label, and preprocessed feature vector. The dataset is split into 
+s,
+
+s shards using stratified sampling, where shard count 
+s
+s is estimated by:
+
+\[
+s = \sqrt{\frac{d \cdot n}{r}}
+\]
+Here, 
+d is the dataset dimension (number of features), 
+n
+n the number of samples, and 
+r
+r is a configurable parameter that controls the desired samples per shard. This formula helps balance the trade-off between retraining efficiency and model performance. Each shard can be further divided into time-ordered slices for more granular incremental training.
+
+From a reproducibility standpoint, the sharded training design also enables persistent bookkeeping of shard composition and unlearning actions. Such bookkeeping is necessary to ensure that subsequent deletion requests (including repeated requests for the same record) can be handled deterministically and safely, and that unlearning outcomes can be inspected or summarized for evaluation.
+
+Other methods include knowledge distillation, which involves retraining on a smaller cleaned dataset, and influence functions, which estimate each data point's effect on predictions. While promising, these remain complex for real-world use. Our modular design limits deletion impact to a subset of training, offering clear computational advantages over full retraining.
+
+\begin{itemize}
+\item Input: Annotated user dataset (e.g., CSV with user IDs, labels, features)
+\item Processing:
+\begin{enumerate}
+\item Group data by user ID
+\item Split into 
+s
+s shards via stratified sampling
+\item Divide each shard into 
+m
+m time-ordered slices
+\item Initialize and train a base model per shard and slice, while recording persistent training metadata
+\end{enumerate}
+\item Output: Trained sub-models representing each shard-slice unit
+\end{itemize}
+
+This structure enables retraining only the slices containing data of users requesting deletion.
+
+When a deletion request arrives, the system identifies the shard and slice(s) holding the user's data. The unlearning process involves:
+\begin{itemize}
+\item \textbf{Identification:} Use training metadata to locate the user's data within the sharded partitioning.
+\item \textbf{Data Removal:} Remove the user's samples from the affected partition; other partitions remain unchanged.
+\item \textbf{Localized Retraining:} Retrain only the affected component(s) (e.g., the corresponding shard and, where applicable, the relevant slice range), while unaffected shards remain intact.
+\item \textbf{Aggregation:} Reintegrate retrained components and combine predictions from all shards via voting or weighted averaging.
+\item \textbf{Audit Logging:} Record the unlearning action (timestamp, target identifier, affected partition, and stated reason) to support traceability across repeated executions.
+\end{itemize}
+
+Our framework's architecture supports user level deletion while minimizing retraining. The SISA Partitioner splits data, the Shard-Slice Trainer manages incremental training with checkpointing, and the Unlearning Engine handles deletion and retraining. The Evaluation module tracks accuracy, retraining time, and privacy metrics. This modular, scalable system enables efficient, privacy-preserving unlearning for real applications.
+
+% \begin{figure}[H]
+% \centering
+% \includegraphics[width=0.94\textwidth]{Minor_Project_Report_Formatting 2/Graphics/whatsapp_image.jpeg}
+% \caption{System Architecture}
+% \label{fig:project-timeline}
+% \end{figure}
+
+Localized retraining reduces computational cost, especially with frequent deletions, and ensures deletion consistency by fully removing user influence. Our design avoids shared gradients or centralized coordination during shard training, improving scalability and privacy.
+
+While many methods remain academic, PyUnlearn fills the gap by providing a practical toolkit easy to adopt and integrate into ML workflows.
+
+
+The literature demonstrates that while machine unlearning has gained significant research attention, the transition from theoretical frameworks to practical, production-ready tools remains incomplete. Existing approaches each offer distinct advantages—SISA provides computational efficiency through localized retraining, influence functions enable parameter-level updates, and certified removal offers theoretical guarantees—but no single solution comprehensively addresses the operational requirements of real-world deployment. PyUnlearn bridges this gap by implementing the SISA framework with persistent state management, audit logging, and idempotent unlearning behavior, providing developers with a toolkit that is both algorithmically sound and practically usable. This work contributes to making privacy-compliant machine learning systems more accessible, aligning technical capability with regulatory expectations.
+
+
+

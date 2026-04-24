@@ -1,0 +1,88 @@
+\chapter{RESULT AND DISCUSSION}
+\label{chap:expected_results}
+
+\section{Work Completed}
+
+\begin{itemize}
+  \item \textbf{Comprehensive Algorithm Analysis:} Conducted a detailed study of the SISA unlearning algorithm using the Adult Income dataset, evaluating sharding, retraining, and unlearning effects.
+
+  \item \textbf{Broader Algorithm Support:} Implemented the SDK to work with any scikit-learn compatible estimator, enabling training and unlearning workflows for classical machine learning algorithms such as Linear Regression, Logistic Regression, Ridge Regression, Support Vector Machines, Random Forests, and Gradient Boosting models.
+
+  \item \textbf{End-to-End Dashboard Integration:} Implemented the complete backend frontend connection for the monitoring dashboard, enabling the interface to fetch and visualize model runs and unlearning events through API endpoints.
+
+  \item \textbf{Persistent History and Auditability:} Introduced persistent storage for model history and unlearning metadata such that re-running experiments does not overwrite prior runs. This improves traceability and supports reproducible reporting.
+    
+  \item \textbf{Robust Unlearning Behavior:} Added idempotent handling for repeated unlearning requests on the same training indices (i.e., repeated ``forget'' operations do not corrupt state), improving operational safety.
+\end{itemize}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Graphics/image.png}
+  \caption{Main dashboard showing unlearning status and metrics}
+  \label{fig:interface_main1}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Configuration File Design:} Added a configuration-driven setup to define variables and API keys with support for environment overrides, allowing deployments to avoid hard-coded secrets.
+  % TODO: Update this figure/screenshot if it currently shows config.json; the implemented configuration is YAML-based with optional environment variable overrides.
+    
+  \item \textbf{Background Synchronization:} Implemented optional automatic, non-blocking background synchronization so that model snapshots and history are pushed to the dashboard without requiring explicit user code.
+\end{itemize}
+
+\subsection{Implementation and Performance Evaluation}
+
+Figure~\ref{fig:config_file} illustrates the configuration setup used in the system, where API keys and environment-specific parameters are defined. This configuration-driven approach enables flexible deployment across local and cloud environments.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Graphics/image.png}
+  \caption{Configuration file setup with API key}
+  \label{fig:config_file}
+\end{figure}
+
+The system was implemented with a focus on modularity, scalability, and performance optimization. Key implementation highlights are summarized below:
+
+\begin{itemize}
+    \item \textbf{Folder Structure and Package Organization:} The codebase was organized into a modular and standardized structure, enabling easy scalability, maintainability, and deployment across different environments.
+    
+    \item \textbf{Performance Benchmarking:} Extensive benchmarking was conducted to compare SISA-based unlearning with full model retraining across varying dataset sizes (5K to 50K samples) and different shard configurations. These experiments highlight the trade-offs between shard granularity, unlearning latency, and model performance.
+\end{itemize}
+
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Graphics/image.png}
+  \caption{Impact of shard count on unlearning latency in the SISA framework}
+  \label{fig:sisa_benchmark1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Graphics/image.png}
+  \caption{Accuracy retention across different shard configurations}
+  \label{fig:sisa_benchmark2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Graphics/image.png}
+  \caption{Speedup factor of SISA unlearning compared to full retraining across dataset sizes}
+  \label{fig:sisa_benchmark3}
+\end{figure}
+
+\FloatBarrier
+
+\section{Challenges Faced}
+
+During the development and evaluation of the system, several challenges were encountered:
+
+\begin{itemize}
+    \item \textbf{Technical Limitations:} Hardware constraints significantly impacted large-scale model training and repeated unlearning cycles, leading to increased computation time.
+    
+    \item \textbf{Dataset Availability:} Obtaining diverse and high-quality datasets that accurately simulate real-world data deletion scenarios proved to be challenging.
+    
+    \item \textbf{Model-Specific Constraints:} Adapting the SISA framework to complex architectures such as convolutional neural networks (e.g., ResNet) introduced additional implementation complexity.
+    
+    \item \textbf{Operational Robustness:} Ensuring persistence, auditability, and safe handling of repeated unlearning requests required careful design of state management, serialization mechanisms, and cross-run consistency.
+\end{itemize}

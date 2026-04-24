@@ -1,0 +1,122 @@
+\documentclass[12pt]{report}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{url}
+\usepackage{caption}
+\usepackage{setspace}
+\usepackage{tocloft}
+
+%----------------------------------------------------------------------
+% FONTS, INDENTATION, MARGINS, LINE SPACING
+%----------------------------------------------------------------------
+\usepackage{times}
+\usepackage{mathptmx}
+\usepackage[left=2.54cm,
+right=2.54cm,
+top=2.54cm,
+bottom=2.54cm,
+a4paper]{geometry}
+
+\setstretch{1.5}
+\AtBeginDocument{\setlength{\parskip}{6pt}\setlength{\parindent}{0pt}}
+
+%----------------------------------------------------------------------
+% TITLES
+%----------------------------------------------------------------------
+\usepackage{titlesec}
+\titlespacing{\chapter}{0pt}{-24pt}{12pt}
+\titlespacing{\section}{0pt}{16pt}{16pt}
+\titlespacing{\subsection}{0pt}{16pt}{16pt}
+\titlespacing{\subsubsection}{0pt}{16pt}{16pt}
+
+\titleformat{\chapter}[display]{\centering\fontsize{14pt}{12pt}\bfseries}{\MakeUppercase{\chaptertitlename\ \thechapter}}{12pt}{}
+\titleformat{\section}{\fontsize{12pt}{16pt}\bfseries\raggedright}{\thesection}{0.5em}{}
+\titleformat{\subsection}{\fontsize{12pt}{16pt}\bfseries\raggedright}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\fontsize{12pt}{16pt}\bfseries\raggedright}{\thesubsubsection}{0.5em}{}
+\titleformat{\paragraph}{\fontsize{12pt}{0pt}\bfseries\raggedright}{\theparagraph}{0.5em}{}
+
+%----------------------------------------------------------------------
+% TOC / LOF / LOT
+%----------------------------------------------------------------------
+\renewcommand{\cftbeforetoctitleskip}{-18pt}
+\renewcommand{\cftaftertoctitleskip}{12pt}
+\renewcommand{\cftbeforechapskip}{9pt}
+\renewcommand{\cftbeforesecskip}{9pt}
+\renewcommand{\cftbeforesubsecskip}{9pt}
+\renewcommand{\contentsname}{\fontsize{14}{16}\bfseries TABLE OF CONTENTS}
+
+\renewcommand{\cftbeforeloftitleskip}{-18pt}
+\renewcommand{\cftafterloftitleskip}{12pt}
+\renewcommand{\cftbeforefigskip}{10pt}
+\renewcommand{\listfigurename}{\fontsize{14}{16}\bfseries LIST OF FIGURES}
+\renewcommand{\cftfigpresnum}{\figurename\ }
+\renewcommand{\cftfigaftersnum}{:}
+\renewcommand{\cftfigaftersnumb}{\hspace{2.5em}}
+
+\renewcommand{\cftbeforelottitleskip}{-18pt}
+\renewcommand{\cftafterlottitleskip}{12pt}
+\renewcommand{\cftbeforetabskip}{10pt}
+\renewcommand{\listtablename}{\fontsize{14}{16}\bfseries LIST OF TABLES}
+\renewcommand{\cfttabpresnum}{Table\ }
+\renewcommand{\cfttabaftersnum}{:}
+\renewcommand{\cfttabaftersnumb}{\hspace{2.5em}}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+%----------------------------------------------------------------------
+% OTHER PACKAGES
+%----------------------------------------------------------------------
+\usepackage{pgfgantt}
+\usepackage{xcolor}
+\usepackage{ragged2e}
+\justifying
+
+%----------------------------------------------------------------------
+% BEGIN DOCUMENT
+%----------------------------------------------------------------------
+\begin{document}
+
+% ----------- COVER PAGES (NO NUMBER) -----------
+\pagenumbering{gobble}
+\include{CoverPage}
+\include{cover2}
+
+% ----------- ROMAN NUMBERING START FROM iii -----------
+\clearpage
+\pagenumbering{roman}
+\setcounter{page}{3}
+
+\include{copyright}
+\include{Declaration}
+\include{Recommendation}
+\include{Acknowledgement}
+\include{abstract}
+
+% ----------- TABLE OF CONTENTS -----------
+\clearpage
+{\centering{\tableofcontents}}\newpage
+
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+
+\include{ListofAbbreviations}
+
+% ----------- ARABIC NUMBERING -----------
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\include{Introduction}
+\include{RelatedTheory}
+\include{LiteratureReview}
+\include{Methodology}
+\include{ExpectedResults}
+\include{References}
+
+\end{document}
