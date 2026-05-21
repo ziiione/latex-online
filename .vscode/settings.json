@@ -43,7 +43,7 @@
 	"latex-workshop.view.pdf.color.light.pageColorsBackground": "#FFFFFF",
 	"latex-workshop.view.pdf.color.light.pageColorsForeground": "#000000",
 	"latex-workshop.view.pdf.color.light.backgroundColor": "#FFFFFF",
-	"latex-workshop.latex.autoBuild.run": "never",
+	"latex-workshop.latex.autoBuild.run": "onSave",
 	"editor.formatOnSave": true,
 	"latex-workshop.latex.pdfWatch.delay": 500,
 	//"latex-workshop.latex.watch.delay": 500, // Deprecated. See here: https://github.com/sanjib-sen/WebLaTex/issues/8

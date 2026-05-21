@@ -14,8 +14,8 @@
 %----------------------------------------------------------------------
 % FONTS, INDENTATION, MARGINS, LINE SPACING
 %----------------------------------------------------------------------
-\usepackage{times}
-\usepackage{mathptmx}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
 \usepackage[left=2.54cm,
 right=2.54cm,
 top=2.54cm,
@@ -35,10 +35,10 @@ a4paper]{geometry}
 \titlespacing{\subsubsection}{0pt}{16pt}{16pt}
 
 \titleformat{\chapter}[display]{\centering\fontsize{14pt}{12pt}\bfseries}{\MakeUppercase{\chaptertitlename\ \thechapter}}{12pt}{}
-\titleformat{\section}{\fontsize{12pt}{16pt}\bfseries\raggedright}{\thesection}{0.5em}{}
-\titleformat{\subsection}{\fontsize{12pt}{16pt}\bfseries\raggedright}{\thesubsection}{0.5em}{}
-\titleformat{\subsubsection}{\fontsize{12pt}{16pt}\bfseries\raggedright}{\thesubsubsection}{0.5em}{}
-\titleformat{\paragraph}{\fontsize{12pt}{0pt}\bfseries\raggedright}{\theparagraph}{0.5em}{}
+\titleformat{\section}{\fontsize{12pt}{16pt}\fontseries{b}\selectfont\raggedright}{\thesection}{0.5em}{}
+\titleformat{\subsection}{\fontsize{12pt}{16pt}\fontseries{b}\selectfont\raggedright}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\fontsize{12pt}{16pt}\fontseries{b}\selectfont\raggedright}{\thesubsubsection}{0.5em}{}
+\titleformat{\paragraph}{\fontsize{12pt}{0pt}\fontseries{b}\selectfont\raggedright}{\theparagraph}{0.5em}{}
 
 %----------------------------------------------------------------------
 % TOC / LOF / LOT
@@ -48,6 +48,12 @@ a4paper]{geometry}
 \renewcommand{\cftbeforechapskip}{9pt}
 \renewcommand{\cftbeforesecskip}{9pt}
 \renewcommand{\cftbeforesubsecskip}{9pt}
+\renewcommand{\cftsecfont}{\bfseries}
+\renewcommand{\cftsecpagefont}{\bfseries}
+\renewcommand{\cftsubsecfont}{\bfseries}
+\renewcommand{\cftsubsecpagefont}{\bfseries}
+\renewcommand{\cftsubsubsecfont}{\bfseries}
+\renewcommand{\cftsubsubsecpagefont}{\bfseries}
 \renewcommand{\contentsname}{\fontsize{14}{16}\bfseries TABLE OF CONTENTS}
 
 \renewcommand{\cftbeforeloftitleskip}{-18pt}
