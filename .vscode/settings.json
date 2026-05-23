@@ -1,64 +1,117 @@
 {
-	"latex-workshop.latex.clean.fileTypes": [
-		"*.aux",
-		"*.bbl",
-		"*.blg",
-		"*.idx",
-		"*.ind",
-		"*.lof",
-		"*.lot",
-		"*.out",
-		"*.toc",
-		"*.acn",
-		"*.acr",
-		"*.alg",
-		"*.glg",
-		"*.glo",
-		"*.gls",
-		"*.fls",
-		"*.log",
-		"*.fdb_latexmk",
-		"*.snm",
-		"*.synctex(busy)",
-		"*.synctex.gz(busy)",
-		"*.nav",
-		"*.vrb",
-		"*.gz", // Added Manually
-		"*.bcf", // Added Manually
-		"*.nlo", // Added Manually
-		"*.run.xml" // Added Manually
-	],
-	// Edit the following property to change export directory
-	"latex-workshop.latex.outDir": "./PDF",
-	"latex-workshop.latex.autoClean.run": "onBuilt",
-	"latex-workshop.latex.build.forceRecipeUsage": false,
-	"latex-workshop.synctex.afterBuild.enabled": true,
-	"latex-workshop.view.pdf.viewer": "tab",
-	"latex-workshop.latex.clean.subfolder.enabled": true,
-	"latex-workshop.latex.magic.args": [
-		"-output-directory=PDF", // to change the output directory
-		"%DOC%"
-	],
-	// Light mode settings for PDF viewer
-	"latex-workshop.view.pdf.color.light.pageColorsBackground": "#FFFFFF",
-	"latex-workshop.view.pdf.color.light.pageColorsForeground": "#000000",
-	"latex-workshop.view.pdf.color.light.backgroundColor": "#FFFFFF",
-	"latex-workshop.latex.autoBuild.run": "onSave",
-	"editor.formatOnSave": true,
-	"latex-workshop.latex.pdfWatch.delay": 500,
-	//"latex-workshop.latex.watch.delay": 500, // Deprecated. See here: https://github.com/sanjib-sen/WebLaTex/issues/8
-	"latex-workshop.codespaces.portforwarding.openDelay": 20000,
-	"grammarly.files.include": [
-		"**/*.tex"
-	],
-	// Remove the following to check .md files with Grammarly.
-	"grammarly.files.exclude": [
-		"**/*.md"
-	],
-	"grammarly.selectors": [
-		{
-			"language": "latex",
-			"scheme": "file"
-		}
-	]
+  "latex-workshop.latex.clean.fileTypes": [
+    "*.aux",
+    "*.bbl",
+    "*.blg",
+    "*.idx",
+    "*.ind",
+    "*.lof",
+    "*.lot",
+    "*.out",
+    "*.toc",
+    "*.acn",
+    "*.acr",
+    "*.alg",
+    "*.glg",
+    "*.glo",
+    "*.gls",
+    "*.fls",
+    "*.log",
+    "*.fdb_latexmk",
+    "*.snm",
+    "*.synctex(busy)",
+    "*.synctex.gz(busy)",
+    "*.nav",
+    "*.vrb",
+    "*.gz",
+    "*.bcf",
+    "*.nlo",
+    "*.run.xml"
+  ],
+  "latex-workshop.latex.outDir": "./PDF",
+  "latex-workshop.latex.autoClean.run": "onBuilt",
+  "latex-workshop.latex.build.forceRecipeUsage": false,
+  "latex-workshop.synctex.afterBuild.enabled": true,
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.latex.clean.subfolder.enabled": true,
+  "latex-workshop.latex.magic.args": [
+    "-output-directory=PDF",
+    "%DOC%"
+  ],
+  "latex-workshop.view.pdf.color.light.pageColorsBackground": "#FFFFFF",
+  "latex-workshop.view.pdf.color.light.pageColorsForeground": "#000000",
+  "latex-workshop.view.pdf.color.light.backgroundColor": "#FFFFFF",
+  "latex-workshop.latex.autoBuild.run": "onSave",
+  "editor.formatOnSave": true,
+  "latex-workshop.latex.pdfWatch.delay": 500,
+  "latex-workshop.codespaces.portforwarding.openDelay": 20000,
+  "grammarly.files.include": [
+    "**/*.tex"
+  ],
+  "grammarly.files.exclude": [
+    "**/*.md"
+  ],
+  "grammarly.selectors": [
+    {
+      "language": "latex",
+      "scheme": "file"
+    }
+  ],
+  "C_Cpp_Runner.cCompilerPath": "gcc",
+  "C_Cpp_Runner.cppCompilerPath": "g++",
+  "C_Cpp_Runner.debuggerPath": "gdb",
+  "C_Cpp_Runner.cStandard": "",
+  "C_Cpp_Runner.cppStandard": "",
+  "C_Cpp_Runner.msvcBatchPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvarsall.bat",
+  "C_Cpp_Runner.useMsvc": false,
+  "C_Cpp_Runner.warnings": [
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Wshadow",
+    "-Wformat=2",
+    "-Wcast-align",
+    "-Wconversion",
+    "-Wsign-conversion",
+    "-Wnull-dereference"
+  ],
+  "C_Cpp_Runner.msvcWarnings": [
+    "/W4",
+    "/permissive-",
+    "/w14242",
+    "/w14287",
+    "/w14296",
+    "/w14311",
+    "/w14826",
+    "/w44062",
+    "/w44242",
+    "/w14905",
+    "/w14906",
+    "/w14263",
+    "/w44265",
+    "/w14928"
+  ],
+  "C_Cpp_Runner.enableWarnings": true,
+  "C_Cpp_Runner.warningsAsError": false,
+  "C_Cpp_Runner.compilerArgs": [],
+  "C_Cpp_Runner.linkerArgs": [],
+  "C_Cpp_Runner.includePaths": [],
+  "C_Cpp_Runner.includeSearch": [
+    "*",
+    "**/*"
+  ],
+  "C_Cpp_Runner.excludeSearch": [
+    "**/build",
+    "**/build/**",
+    "**/.*",
+    "**/.*/**",
+    "**/.vscode",
+    "**/.vscode/**"
+  ],
+  "C_Cpp_Runner.useAddressSanitizer": false,
+  "C_Cpp_Runner.useUndefinedSanitizer": false,
+  "C_Cpp_Runner.useLeakSanitizer": false,
+  "C_Cpp_Runner.showCompilationTime": false,
+  "C_Cpp_Runner.useLinkTimeOptimization": false,
+  "C_Cpp_Runner.msvcSecureNoWarnings": false
 }
