@@ -1,90 +1,115 @@
 \chapter{METHODOLOGY}
+
 \section{Project Development Method}
-\begin{figure}[ht]
-\centering
-\includegraphics[width=1.0\textwidth]{Graphics/image.png}
-\caption{Phases of the Agile Development Methodology}
-\label{fig:system_diagram}
-\end{figure}
 
-The development of PyUnlearn follows an Agile methodology, enabling iterative progress, continuous feedback integration, and adaptive planning throughout the project lifecycle. This approach proved particularly suitable given the evolving nature of machine unlearning techniques and the need for frequent validation with real-world use cases.
-
-\subsection{Research}
-We begin by identifying the core challenges of machine unlearning in practical AI/ML workflows, particularly for privacy-focused deployments. Through stakeholder analysis and a review of privacy-driven operational constraints, we derive requirements that extend beyond algorithmic unlearning efficiency. These requirements include support for selective data deletion, privacy-compliant retraining, verifiable audit logging, persistence of model state across repeated executions, and compatibility with local as well as cloud-enabled monitoring environments. A systematic literature review was conducted to understand existing approaches and their limitations.
-
-\subsection{Strategize}
-Based on insights from the research phase, we define a system strategy that prioritizes modularity, compliance, and integration ease. We select the SISA framework as the principal unlearning paradigm due to its localized retraining properties and suitability for repeated deletion requests. Key architectural decisions, including the choice of SQLite for persistent storage and RESTful API design for the cloud platform, were finalized during this phase. In addition, we plan for multi-environment usability by supporting a configuration-driven workflow, enabling users to run the system purely locally or to optionally enable cloud synchronization and monitoring without requiring changes to their core machine learning code.
-
-\subsection{Document Requirements}
-We document functional and technical specifications needed to guide system development. Functional specifications include training, prediction, and unlearning operations, along with the ability to process single and batch deletion requests. Technical specifications include persistent metadata storage using SQLite, an append-only unlearning history log for auditability, and safe handling of repeated unlearning requests for the same record (idempotent behavior). We additionally specify configuration requirements to support user provided tokens and endpoint overrides when cloud synchronization is enabled. This step forms the blueprint for the subsequent system design and ensures all team members share a common understanding of deliverables.
-
-\subsection{System Design}
-We design the system architecture to support the complete machine unlearning workflow, including model management, metadata persistence, audit logging, and retraining orchestration. The pipeline ensures that each data deletion request is mapped to the minimal affected training partition, allowing retraining to be localized rather than applied to the entire model. All unlearning events are systematically recorded to support traceability and auditing. To enhance usability, the architecture also incorporates an optional synchronization layer for dashboard monitoring, implemented in a non-blocking manner so that background updates do not interfere with training or unlearning processes. This design enables the system to be packaged as a reusable SDK and deployed across diverse environments, from local development setups to production cloud infrastructure.
-
-\subsubsection{Sharded Training and Machine Unlearning Framework}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=1.0\textwidth]{Graphics/image.png}
-\caption{Sharded Training and Machine Unlearning Architecture}
-\label{fig:sisa_architecture}
-\end{figure}
-
-The proposed framework adopts a sharded training strategy to enable efficient and scalable data removal. As illustrated in Figure~\ref{fig:sisa_architecture}, the dataset is initially partitioned into multiple independent shards to ensure data isolation. Each shard is trained separately to produce individual models, which are later aggregated into a unified predictive model. For finer granularity, each shard is further divided into smaller slices, allowing unlearning to be performed at either shard level or slice level depending on the deletion scope. This hierarchical structure ensures that only the affected partition requires retraining when a deletion request is made, while the rest of the model remains unchanged. Consequently, the approach significantly reduces computational overhead and improves efficiency while maintaining overall model integrity. Additionally, this design supports parallel training across shards, enabling faster initial model development. The isolation between shards also provides natural privacy boundaries, as no data flows between partitions during training or unlearning operations. This makes the framework particularly suitable for deployment scenarios where data compartmentalization is required for regulatory compliance.
-
-\subsubsection{Metadata Storage for SISA-Based Unlearning}
-
-The effectiveness of the SISA framework depends critically on persistent metadata that captures the relationship between training data and the sharded model structure. Without proper metadata management, the system cannot reliably identify which shard contains a given data point when a deletion request arrives, nor can it maintain auditability across multiple unlearning operations.
-
-\paragraph{Metadata Schema Design}
-The system implements a SQLite-based storage layer with the following core tables:
-
-\begin{itemize}
-    \item \textbf{models:} Stores global model metadata including model ID, creation timestamp, dataset hash, total shard count, aggregation strategy (voting or averaging), and the scikit-learn estimator type used for training.
-    
-    \item \textbf{shards:} Maintains per-shard information such as shard ID, associated model ID, shard index, number of active samples, file path to the pickled model artifact, and timestamp of the last retraining operation.
-    
-    \item \textbf{index\_mapping:} The critical mapping table that links each original data point index to its assigned shard and slice. This table enables O(1) lookup when processing deletion requests, avoiding the need to scan the entire dataset.
-    
-    \item \textbf{unlearning\_history:} An append-only audit log recording each unlearning event with request ID, timestamp, target data point indices, affected shard IDs, reason code (e.g., 'GDPR\_REQUEST', 'DATA\_CORRUPTION'), and operation status.
-\end{itemize}
-
-\paragraph{Metadata Lifecycle During Unlearning}
-When a deletion request arrives, the system follows this metadata-driven workflow:
-
-\begin{enumerate}
-    \item \textbf{Lookup:} Query the index\_mapping table to retrieve the shard and slice containing each target data point.
-    \item \textbf{Validation:} Verify that the target indices have not been previously deleted by checking the unlearning\_history table, ensuring idempotent behavior.
-    \item \textbf{Isolation:} For each affected shard, load the current training data, remove the target samples, and update the active sample count in the shards table.
-    \item \textbf{Retraining:} Retrain the affected shard model and update its file path and last\_retrain\_timestamp in the shards table.
-    \item \textbf{Logging:} Insert a new record into the unlearning\_history table with complete details of the operation.
-    \item \textbf{Commit:} All database operations are wrapped in a transaction, ensuring that partial updates do not occur if any step fails.
-\end{enumerate}
-
-\paragraph{Persistence and Portability}
-All metadata is stored in a local SQLite database file alongside the trained model artifacts. This design ensures that the entire system state—models, shard assignments, and audit logs—can be moved, backed up, or restored as a single unit. When cloud synchronization is enabled, metadata snapshots are periodically pushed to the monitoring dashboard, providing visibility without requiring access to the local storage.
-
-\paragraph{Auditability and Compliance}
-The append-only nature of the unlearning history table is particularly important for regulatory compliance. Each deletion request is permanently recorded with a timestamp and reason code, creating an immutable record that can be presented during audits to demonstrate that user deletion requests have been properly processed. The persistent index mapping also enables verification that no deleted data remains active in any shard model.
-
-\subsection{Develop}
-Using Agile sprints of two-week duration, we implement the system in modular increments. Each sprint delivers SDK features such as SISA-based training and aggregation, persistent metadata management, and unlearning operations with explicit reason tracking. Feature development also includes configuration management (e.g., YAML- and environment-based overrides) and optional background synchronization to a monitoring service when enabled by the user. Code reviews and pair programming sessions were conducted to maintain code quality and knowledge sharing across team members. This incremental approach allows validation of correctness after each feature addition, particularly for persistence and idempotent unlearning behavior.
-
-\subsection{Integration and Testing}
-Comprehensive testing is conducted to validate system integrity and unlearning behavior. Unit and integration tests verify correct shard construction, consistent index-to-shard mapping, and correctness of localized retraining. Additional validation focuses on persistence and auditability, including the ability to reload model state across multiple runs, to append unlearning actions to the history log, and to safely ignore repeated unlearning requests for already-removed indices without raising failures. Performance testing was conducted to benchmark unlearning latency across varying dataset sizes and shard configurations. Where cloud monitoring is enabled, synchronization is tested to ensure that model statistics and history snapshots can be propagated without requiring explicit user-side synchronization calls.
-
-\subsection{Deploy}
-We prepare the system for deployment by releasing stable SDK versions through standard packaging workflows (PyPI distribution), alongside examples and quickstart templates. Deployment considerations include configuration distribution (project-level configuration files and environment variable overrides) to securely provide cloud tokens and endpoint configuration when the dashboard is used. The dashboard backend (FastAPI) and frontend (React) are deployed as separate services, enabling users to run the monitoring stack locally during development or to integrate it into a cloud environment as required. Containerization using Docker is supported for consistent deployment across environments.
-
-\subsection{Support / Maintenance}
-Post-deployment, we onboard early users to gather real-world feedback and to evaluate usability under realistic deletion-request scenarios. Based on this feedback, we iteratively improve model support, user experience, and documentation quality. Maintenance activities also include monitoring reliability of persistence and logging mechanisms, ensuring backward compatibility of stored metadata where feasible, and refining configuration defaults to reduce integration effort for both local-only and cloud-enabled deployments. A public issue tracker is maintained to manage feature requests and bug reports from the user community.
-
-\section{Project Timeline}
-The project development is structured across major milestones spanning the academic year, with completed work consolidated into the earlier phases and remaining activities scheduled through the end-of-March submission period. Key milestones included algorithm selection in September, core SDK implementation from October to December, dashboard development in January, integration testing in February, and final documentation and deployment preparation in March.
+The development of PyUnlearn follows an Agile methodology \cite{bourtoule2021machine}, enabling iterative progress, continuous feedback integration, and adaptive planning throughout the project lifecycle. This approach proved particularly suitable given the evolving nature of machine unlearning techniques and the need for frequent validation with real-world use cases. The Agile process is structured into six phases: Research, Strategize, Document Requirements, System Design, Develop, and Integration and Testing, followed by Deployment and Maintenance.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.9\textwidth]{Graphics/image.png}
-\caption{Project Timeline Snapshot (Gantt Chart Representation)}
-\label{fig:project-timeline}
+\includegraphics[width=1.0\textwidth]{Graphics/method.png}
+\caption{Phases of the Agile Development Methodology adopted for PyUnlearn}
+\label{fig:agile_phases}
 \end{figure}
+
+\subsection{Research}
+We begin by identifying the core challenges of machine unlearning in practical AI/ML workflows, particularly for privacy-focused deployments. Through stakeholder analysis and a review of privacy-driven operational constraints, we derive requirements that extend beyond algorithmic unlearning efficiency. These requirements include support for selective data deletion, privacy-compliant retraining, verifiable audit logging, persistence of model state across repeated executions, and compatibility with local as well as cloud-enabled monitoring environments. A systematic literature review was conducted to understand existing approaches and their limitations, drawing on foundational works including Bourtoule et al. \cite{bourtoule2021machine}, Guo et al. \cite{guo2020certified}, and Cao and Yang \cite{cao2015towards}.
+
+\subsection{Strategize}
+Based on insights from the research phase, we define a system strategy that prioritizes modularity, compliance, and integration ease. We select the SISA framework \cite{bourtoule2021machine} as the principal unlearning paradigm due to its localized retraining properties and suitability for repeated deletion requests. Key architectural decisions, including the choice of SQLite for persistent storage and RESTful API design for the cloud platform, were finalized during this phase. In addition, we plan for multi-environment usability by supporting a configuration-driven workflow, enabling users to run the system purely locally or to optionally enable cloud synchronization and monitoring without requiring changes to their core machine learning code.
+
+\subsection{Document Requirements}
+We document functional and technical specifications needed to guide system development. Functional specifications include training, prediction, and unlearning operations, along with the ability to process single and batch deletion requests. Technical specifications include persistent metadata storage using SQLite, an append-only unlearning history log for auditability, and safe handling of repeated unlearning requests for the same record (idempotent behavior). We additionally specify configuration requirements to support user-provided tokens and endpoint overrides when cloud synchronization is enabled. This step forms the blueprint for the subsequent system design and ensures all team members share a common understanding of deliverables.
+
+\subsection{Develop}
+Using Agile sprints of two-week duration, we implement the system in modular increments. Each sprint delivers SDK features such as SISA-based training and aggregation, persistent metadata management, and unlearning operations with explicit reason tracking. Feature development also includes configuration management through YAML-based and environment variable overrides, and optional background synchronization to a monitoring service when enabled by the user. Code reviews and pair programming sessions were conducted to maintain code quality and knowledge sharing across team members. This incremental approach allows validation of correctness after each feature addition, particularly for persistence and idempotent unlearning behavior.
+
+\subsection{Integration and Testing}
+Comprehensive testing is conducted to validate system integrity and unlearning behavior. Unit and integration tests verify correct shard construction, consistent index-to-shard mapping, and correctness of localized retraining. Additional validation focuses on persistence and auditability, including the ability to reload model state across multiple runs, to append unlearning actions to the history log, and to safely ignore repeated unlearning requests for already-removed indices without raising failures. Performance testing was conducted to benchmark unlearning latency across varying dataset sizes and shard configurations using the Adult Income dataset from the UCI Machine Learning Repository \cite{dua2019uci}.
+
+\subsection{Deploy}
+We prepare the system for deployment by releasing stable SDK versions through standard packaging workflows via PyPI distribution, alongside examples and quickstart templates. The dashboard backend built with Django and the frontend built with React are deployed as separate services, enabling users to run the monitoring stack locally during development or to integrate it into a cloud environment as required. Containerization using Docker is supported for consistent deployment across environments, and environment variable overrides allow secure configuration of API tokens and endpoint URLs without hard-coding sensitive values.
+
+\subsection{Support and Maintenance}
+Post-deployment, we onboard early users to gather real-world feedback and evaluate usability under realistic deletion-request scenarios. Based on this feedback, we iteratively improve model support, user experience, and documentation quality. Maintenance activities include monitoring reliability of persistence and logging mechanisms, ensuring backward compatibility of stored metadata, and refining configuration defaults to reduce integration effort for both local-only and cloud-enabled deployments.
+
+\section{System Architecture}
+
+The overall system architecture of PyUnlearn is designed around three core concerns: efficient sharded training, reliable metadata persistence, and optional cloud-based monitoring. These concerns are addressed by three loosely coupled components that communicate through well-defined interfaces, enabling the system to be deployed in a variety of configurations without modifying the core unlearning logic.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.0\textwidth]{Graphics/model.png}
+\caption{High-level system architecture of PyUnlearn showing the SDK core, metadata layer, and monitoring dashboard}
+\label{fig:system_arch}
+\end{figure}
+
+The SDK core encapsulates the SISA training engine, the unlearning engine, and the prediction aggregator. The metadata layer provides persistent SQLite-based storage for shard assignments, model artifacts, and unlearning history. The monitoring layer, when enabled, synchronizes model statistics and unlearning events to a Django backend that serves a React-based dashboard. This separation of concerns ensures that the core unlearning functionality remains fully operational even when the monitoring layer is disabled or unavailable.
+
+\section{Sharded Training and Unlearning Framework}
+
+\subsection{Data Partitioning Strategy}
+
+The foundation of the PyUnlearn system is the SISA-based data partitioning strategy \cite{bourtoule2021machine}. Given a dataset $\mathcal{D}$ of $n$ samples, the partitioning step divides $\mathcal{D}$ into $S$ disjoint shards using stratified sampling to preserve class distribution across partitions. Each shard $\mathcal{D}_s$ contains approximately $\frac{n}{S}$ samples, and the shard assignment for each data point is recorded in the persistent index mapping table. The optimal shard count is estimated as:
+
+\[
+S = \sqrt{\frac{d \cdot n}{r}}
+\]
+
+where $d$ is the number of features, $n$ is the total sample count, and $r$ is a configurable target samples-per-shard parameter. This formula balances the trade-off between retraining efficiency, which favors more shards, and model accuracy, which favors fewer and larger shards.
+
+Each shard is further divided into $K$ time-ordered slices, and model checkpoints are saved after training on each slice. This hierarchical structure enables unlearning to be performed at either shard level or slice level depending on the scope of the deletion request, minimizing the amount of retraining required for any given deletion.
+
+\subsection{Training Pipeline}
+
+The training pipeline processes the dataset through the following steps. First, the dataset is loaded and validated, and a unique model ID is generated along with a hash of the dataset for integrity verification. The data is then partitioned into shards using stratified sampling, and each shard is further divided into slices. For each shard, a scikit-learn compatible estimator is instantiated and trained incrementally on each slice, with the model state saved as a checkpoint after each slice. Upon completion, the trained model artifact for each shard is serialized and its file path recorded in the shards metadata table.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.0\textwidth]{Graphics/sisa--mu.jpeg}
+\caption{SISA-based training and unlearning pipeline showing data flow from partitioning through training to aggregated prediction}
+\label{fig:training_pipeline}
+\end{figure}
+
+\subsection{Unlearning Engine}
+
+When a deletion request arrives specifying one or more data point indices to be forgotten, the unlearning engine executes the following metadata-driven workflow:
+
+\begin{enumerate}
+    \item \textbf{Lookup:} Query the index\_mapping table to identify the shard and slice containing each target data point.
+    \item \textbf{Validation:} Check the unlearning\_history table to verify that the target indices have not been previously deleted, ensuring idempotent behavior \cite{schelter2021heterogeneous}.
+    \item \textbf{Isolation:} For each affected shard, load the current training data, remove the target samples, and update the active sample count in the shards table.
+    \item \textbf{Retraining:} Retrain the affected shard model from the last clean checkpoint and update its file path and retraining timestamp in the shards table.
+    \item \textbf{Logging:} Insert a new record into the unlearning\_history table capturing the request ID, timestamp, target indices, affected shard IDs, reason code, and operation status.
+    \item \textbf{Commit:} Wrap all database operations in a single transaction to ensure atomicity, preventing partial updates if any step fails.
+\end{enumerate}
+
+\section{Metadata Storage Design}
+
+\subsection{Schema Design}
+
+The system implements a SQLite-based storage layer with four core tables that together capture the complete state of the trained model and its unlearning history \cite{schelter2021heterogeneous}:
+
+\begin{itemize}
+    \item \textbf{models:} Stores global model metadata including model ID, creation timestamp, dataset hash, total shard count, aggregation strategy, and the scikit-learn estimator class name.
+    \item \textbf{shards:} Maintains per-shard information including shard ID, associated model ID, shard index, number of active samples, file path to the serialized model artifact, and timestamp of the last retraining operation.
+    \item \textbf{index\_mapping:} The critical mapping table that links each original data point index to its assigned shard and slice, enabling O(1) lookup when processing deletion requests.
+    \item \textbf{unlearning\_history:} An append-only audit log recording each unlearning event with full details for regulatory traceability, including reason codes such as \texttt{GDPR\_REQUEST} and \texttt{DATA\_CORRUPTION}.
+\end{itemize}
+
+\subsection{Persistence and Portability}
+
+All metadata is stored in a local SQLite database file alongside the trained model artifacts. This design ensures that the entire system state, including models, shard assignments, and audit logs, can be moved, backed up, or restored as a single portable unit. The append-only nature of the unlearning history table is particularly important for regulatory compliance under GDPR \cite{gdpr2016}, as each deletion request is permanently recorded with a timestamp and reason code, creating an immutable record that can be presented during audits to demonstrate that user deletion requests have been properly processed.
+
+\section{Monitoring Dashboard}
+
+The optional monitoring dashboard provides real-time visibility into model training runs, unlearning events, and system health metrics. The dashboard is implemented as a decoupled web application with a Django REST API backend and a React frontend. When enabled through the project configuration file, the SDK automatically synchronizes model snapshots and unlearning history to the backend in a non-blocking background thread, ensuring that dashboard updates do not interfere with training or unlearning operations.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{Graphics/apikey.png}
+\caption{Configuration file setup showing API key and endpoint configuration for dashboard synchronization}
+\label{fig:config_setup}
+\end{figure}
+
+The dashboard exposes REST API endpoints for retrieving model run history, querying unlearning events by date range or reason code, and viewing per-shard accuracy and sample count statistics. Authentication is handled through API key configuration, with support for environment variable overrides to avoid hard-coding sensitive credentials in project configuration files.
+

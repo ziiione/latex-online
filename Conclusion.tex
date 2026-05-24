@@ -1,0 +1,54 @@
+\chapter{CONCLUSION AND FUTURE WORK}
+
+\section{Conclusion}
+
+This project set out to address a critical and growing gap between the legal requirements established by privacy regulations such as GDPR \cite{gdpr2016} and the technical capabilities of deployed machine learning systems. The right to be forgotten demands that organizations be able to remove the influence of specific individuals' data from trained models, yet no practical, developer-friendly solution existed that could be readily integrated into standard machine learning workflows. PyUnlearn was developed to fill this gap.
+
+The system implements the SISA (Sharded, Isolated, Sliced, and Aggregated) framework \cite{bourtoule2021machine} as its core unlearning engine, partitioning training data into independently retrainable shards and maintaining persistent metadata to enable localized retraining on deletion requests. By limiting the scope of retraining to only the affected shard, PyUnlearn achieves significant reductions in unlearning time compared to full model retraining, while preserving model accuracy on retained data within a negligible margin. The system is designed to be compatible with any scikit-learn estimator, making it broadly applicable across classical machine learning workflows without requiring changes to existing model code.
+
+Beyond the core unlearning algorithm, PyUnlearn delivers a set of production-grade system features that are frequently absent from academic unlearning implementations. Persistent SQLite-based metadata storage ensures that shard assignments and model artifacts remain consistent across system restarts. An append-only unlearning history log provides a tamper-resistant audit trail for regulatory compliance. Idempotent deletion semantics guarantee that repeated unlearning requests for the same data point are handled safely without corrupting model state. An optional monitoring dashboard built with Django and React provides real-time visibility into model runs and unlearning events, with non-blocking background synchronization that does not interfere with core operations.
+
+Performance benchmarks conducted on the Adult Income dataset \cite{dua2019uci} across dataset sizes ranging from 5,000 to 50,000 samples confirmed that SISA-based unlearning delivers meaningful efficiency gains over full retraining, with the speedup advantage becoming more pronounced as dataset size increases. These results validate the practical utility of the SISA framework for real-world unlearning scenarios and demonstrate that PyUnlearn successfully translates the theoretical guarantees of the framework into a reliable and usable software system.
+
+In summary, PyUnlearn represents a meaningful contribution toward making privacy-compliant machine learning accessible to developers and organizations that must operate under modern data protection regulations. The project demonstrates that efficient, auditable, and production-ready machine unlearning is achievable within the constraints of standard machine learning tooling, without requiring specialized hardware or deep expertise in privacy-preserving algorithms.
+
+\section{Limitations}
+
+Despite the contributions of this project, several limitations must be acknowledged that bound the scope and applicability of the current implementation.
+
+\subsection{Restricted to Classical Machine Learning Models}
+The current implementation supports only scikit-learn compatible estimators, which covers classical machine learning models such as linear models, tree-based ensembles, and support vector machines. Deep learning architectures, including convolutional neural networks and transformer-based models, are not supported. These architectures present additional challenges for SISA-based unlearning due to complex optimization dynamics, stateful batch normalization layers, and the dependency of learned representations on the full training distribution. As deep learning models are increasingly used in privacy-sensitive applications, this represents a significant limitation of the current system \cite{golatkar2020eternal}.
+
+\subsection{Fixed Sharding Strategy}
+The current implementation uses a fixed sharding strategy based on stratified random sampling, with the shard count determined by a configurable formula. This strategy does not adapt to the distribution of unlearning requests over time. In practice, certain data points or user groups may be more likely to submit deletion requests, and an adaptive sharding strategy that places high-risk data points in smaller, more easily retrainable shards could significantly improve unlearning efficiency. The absence of such adaptive partitioning is a known limitation of the static SISA approach \cite{bourtoule2021machine}.
+
+\subsection{Absence of Formal Privacy Certification}
+PyUnlearn provides practical unlearning guarantees through exact shard retraining, but does not provide formal certified removal guarantees in the sense of Guo et al. \cite{guo2020certified}. The system cannot quantify the residual influence of a deleted data point in terms of a bounded privacy parameter $(\epsilon, \delta)$. For organizations operating under strict regulatory frameworks that require mathematically provable deletion guarantees, this limitation may restrict the applicability of the current system.
+
+\subsection{Scalability Constraints}
+The current implementation stores all model artifacts and metadata on the local file system using SQLite, which introduces scalability constraints for very large datasets or high-frequency deletion request scenarios. SQLite's single-writer concurrency model limits throughput under concurrent deletion requests, and local file system storage is not suitable for distributed training environments where model artifacts must be shared across multiple nodes.
+
+\subsection{Limited Dataset Diversity in Evaluation}
+The performance evaluation was conducted primarily on the Adult Income dataset, which is a tabular classification benchmark with well-understood characteristics. The generalizability of the benchmark results to other dataset types, including high-dimensional feature spaces, imbalanced class distributions, and time-series data, has not been validated. A more comprehensive evaluation across diverse datasets would strengthen the empirical claims of the system.
+
+\section{Future Enhancements}
+
+The limitations identified above define a clear roadmap for future development of PyUnlearn. The following enhancements are proposed as directions for extending the system's capabilities and applicability.
+
+\subsection{Deep Learning Support}
+Extending PyUnlearn to support deep learning models is the most impactful direction for future work. This would involve integrating with PyTorch or TensorFlow training pipelines and adapting the SISA sharding mechanism to handle the stateful nature of neural network training, including optimizer state, learning rate schedules, and batch normalization statistics. The scrubbing approach proposed by Golatkar et al. \cite{golatkar2020eternal} could be incorporated as an alternative unlearning mechanism for deep networks where exact shard retraining is computationally prohibitive.
+
+\subsection{Adaptive Sharding}
+Future versions of the system could implement an adaptive sharding strategy that dynamically adjusts shard boundaries based on observed deletion request patterns. By placing data points that are more likely to be deleted into smaller, more isolated shards, the system could reduce average unlearning latency without sacrificing overall model accuracy. This would require maintaining a probabilistic model of deletion request distributions and periodically rebalancing shard assignments as new deletion patterns emerge.
+
+\subsection{Formal Privacy Certification}
+Integrating certified data removal guarantees \cite{guo2020certified} alongside the existing SISA-based exact unlearning would allow PyUnlearn to serve a broader range of compliance requirements. For models where exact retraining is too expensive, a certified approximate removal mechanism could provide bounded privacy guarantees at a fraction of the computational cost, giving operators a configurable trade-off between unlearning exactness and computational efficiency.
+
+\subsection{Distributed and Cloud-Native Deployment}
+Replacing the SQLite metadata store with a distributed database such as PostgreSQL or a cloud-native key-value store would remove the scalability constraints of the current implementation and enable PyUnlearn to operate in distributed training environments. Integrating with cloud storage services for model artifact management would further support large-scale deployments where training data and model artifacts are distributed across multiple nodes or geographic regions.
+
+\subsection{Extended Evaluation and Benchmarking}
+A comprehensive evaluation across diverse datasets, model families, and deletion request distributions would strengthen the empirical foundation of the system. Future work should include benchmarks on high-dimensional datasets, imbalanced classification problems, and regression tasks, as well as evaluation of unlearning quality using membership inference attack success rates \cite{shokri2017membership} as a privacy metric. This would provide a more complete picture of the system's effectiveness across the range of scenarios encountered in real-world deployments.
+
+\subsection{Federated Unlearning}
+Extending PyUnlearn to support federated learning settings, where training data is distributed across multiple clients and the central server has no direct access to individual data points, represents a significant and practically relevant direction for future work. Federated unlearning requires coordinating deletion across clients while preserving the privacy of other participants' data, and would greatly expand the applicability of the system to privacy-sensitive distributed machine learning scenarios.
